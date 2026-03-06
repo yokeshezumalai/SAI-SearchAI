@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAI - Search AI</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      min-height: 100vh;
+    }
+
+    /* Layout */
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .nav-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      color: #94a3b8;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .nav-item:hover, .nav-item.active {
+      background: #1e293b;
+      color: #fff;
+    }
+
+    .nav-icon {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      padding: 32px;
+      overflow-y: auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .api-key-display {
+      background: #f1f5f9;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: monospace;
+      color: #475569;
+    }
+
+    /* Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .stat-change {
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    .stat-change.positive { color: #10b981; }
+    .stat-change.negative { color: #ef4444; }
+
+    /* Upload Section */
+    .upload-zone {
+      background: #fff;
+      border: 2px dashed #cbd5e1;
+      border-radius: 16px;
+      padding: 48px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: #6366f1;
+      background: #f5f3ff;
+    }
+
+    .upload-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 16px;
+      color: #6366f1;
+    }
+
+    .upload-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .upload-subtitle {
+      color: #64748b;
+      font-size: 14px;
+    }
+
+    /* Search */
+    .search-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .search-box {
+      background: #fff;
+      border-radius: 16px;
+      padding: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      display: flex;
+      gap: 8px;
+    }
+
+    .search-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      padding: 16px;
+      font-size: 16px;
+      border-radius: 12px;
+    }
+
+    .search-btn {
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .search-btn:hover {
+      background: #4f46e5;
+    }
+
+    /* Example Queries */
+    .examples {
+      margin-top: 24px;
+    }
+
+    .examples-title {
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 12px;
+    }
+
+    .example-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .example-chip {
+      background: #f1f5f9;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      color: #475569;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .example-chip:hover {
+      background: #e2e8f0;
+      color: #1e293b;
+    }
+
+    /* Results */
+    .results-container {
+      margin-top: 32px;
+    }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .results-count {
+      color: #64748b;
+    }
+
+    .transaction-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .transaction-item {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .transaction-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .transaction-merchant {
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .transaction-category {
+      font-size: 14px;
+      color: #64748b;
+    }
+
+    .transaction-date {
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    .transaction-amount {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    /* Charts */
+    .chart-container {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .chart-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: #fff;
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 500px;
+      width: 90%;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .modal-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary {
+      background: #f1f5f9;
+      border: none;
+      color: #475569;
+    }
+
+    .btn-primary {
+      background: #6366f1;
+      border: none;
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #4f46e5;
+    }
+
+    /* Loading */
+    .loading {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 48px;
+    }
+
+    .loading.active {
+      display: flex;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #e2e8f0;
+      border-top-color: #6366f1;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Alert */
+    .alert {
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+
+    .alert-success {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .alert-error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <div class="logo-icon">$</div>
+        SAI - Search AI
+      </div>
+
+      <nav class="nav-menu">
+        <a class="nav-item active" data-page="search">
+          <span class="nav-icon">🔍</span>
+          Search
+        </a>
+        <a class="nav-item" data-page="dashboard">
+          <span class="nav-icon">📊</span>
+          Dashboard
+        </a>
+        <a class="nav-item" data-page="upload">
+          <span class="nav-icon">📁</span>
+          Upload Data
+        </a>
+        <a class="nav-item" data-page="transactions">
+          <span class="nav-icon">💳</span>
+          Transactions
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="header">
+        <h1 id="page-title">Search Transactions</h1>
+        <div class="api-key-display" id="api-key-display">API Key: Not set</div>
+      </div>
+
+      <!-- Search Page -->
+      <div id="page-search" class="page">
+        <div class="search-container">
+          <div class="search-box">
+            <input type="text" class="search-input" id="search-input" placeholder="Ask about your transactions...">
+            <button class="search-btn" onclick="performSearch()">Search</button>
+          </div>
+
+          <div class="examples">
+            <div class="examples-title">Try asking:</div>
+            <div class="example-chips">
+              <span class="example-chip" onclick="setSearch('shopping last month')">Shopping last month</span>
+              <span class="example-chip" onclick="setSearch('groceries this year')">Groceries this year</span>
+              <span class="example-chip" onclick="setSearch('dining expenses')">Dining expenses</span>
+              <span class="example-chip" onclick="setSearch('transportation last week')">Transportation last week</span>
+              <span class="example-chip" onclick="setSearch('entertainment spending')">Entertainment spending</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="loading" id="search-loading">
+          <div class="spinner"></div>
+        </div>
+
+        <div class="results-container" id="search-results"></div>
+      </div>
+
+      <!-- Dashboard Page -->
+      <div id="page-dashboard" class="page" style="display: none;">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Spending</div>
+            <div class="stat-value" id="total-spending">$0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Transactions</div>
+            <div class="stat-value" id="total-transactions">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Categories</div>
+            <div class="stat-value" id="total-categories">0</div>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <div class="chart-title">Spending by Category</div>
+          <canvas id="category-chart"></canvas>
+        </div>
+
+        <div class="chart-container">
+          <div class="chart-title">Top Merchants</div>
+          <canvas id="merchant-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- Upload Page -->
+      <div id="page-upload" class="page" style="display: none;">
+        <div class="upload-zone" id="upload-zone">
+          <div class="upload-icon">📄</div>
+          <div class="upload-title">Drop your transaction file here</div>
+          <div class="upload-subtitle">Supports CSV, Excel (.xlsx), and JSON files</div>
+          <input type="file" id="file-input" accept=".csv,.xlsx,.xls,.json" style="display: none;">
+        </div>
+
+        <div style="margin-top: 16px; text-align: center;">
+          <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="clear-existing" checked style="width: 18px; height: 18px;">
+            <span>Replace existing data</span>
+          </label>
+        </div>
+
+        <div class="loading" id="upload-loading">
+          <div class="spinner"></div>
+        </div>
+
+        <div id="upload-result"></div>
+      </div>
+
+      <!-- Transactions Page -->
+      <div id="page-transactions" class="page" style="display: none;">
+        <div class="filters" style="margin-bottom: 24px; display: flex; gap: 12px; flex-wrap: wrap;">
+          <select id="filter-category" class="modal-input" style="width: auto;">
+            <option value="">All Categories</option>
+          </select>
+          <select id="filter-year" class="modal-input" style="width: auto;">
+            <option value="">All Years</option>
+          </select>
+          <button class="btn btn-primary" onclick="loadTransactions()">Apply Filters</button>
+        </div>
+
+        <div class="loading" id="transactions-loading">
+          <div class="spinner"></div>
+        </div>
+
+        <div class="transaction-list" id="transactions-list"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- API Key Modal -->
+  <div class="modal-overlay" id="api-key-modal">
+    <div class="modal">
+      <div class="modal-title">Enter API Key</div>
+      <p style="color: #64748b; margin-bottom: 16px;">Enter your API key to access the Transaction Search API.</p>
+      <input type="text" class="modal-input" id="api-key-input" placeholder="txn_xxxxx...">
+      <div class="modal-buttons">
+        <button class="btn btn-primary" onclick="saveApiKey()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State
+    let apiKey = localStorage.getItem('api_key') || '';
+    let categoryChart = null;
+    let merchantChart = null;
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!apiKey) {
+        document.getElementById('api-key-modal').classList.add('active');
+      } else {
+        updateApiKeyDisplay();
+        loadDashboard();
+      }
+
+      // Navigation
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const page = item.dataset.page;
+          showPage(page);
+        });
+      });
+
+      // Upload
+      const uploadZone = document.getElementById('upload-zone');
+      const fileInput = document.getElementById('file-input');
+
+      uploadZone.addEventListener('click', () => fileInput.click());
+      uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+      });
+      uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('dragover');
+      });
+      uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) {
+          uploadFile(e.dataTransfer.files[0]);
+        }
+      });
+
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) {
+          uploadFile(fileInput.files[0]);
+        }
+      });
+
+      // Search on Enter
+      document.getElementById('search-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          performSearch();
+        }
+      });
+    });
+
+    function updateApiKeyDisplay() {
+      document.getElementById('api-key-display').textContent =
+        'API Key: ' + (apiKey ? apiKey.substring(0, 12) + '...' : 'Not set');
+    }
+
+    function saveApiKey() {
+      const input = document.getElementById('api-key-input').value.trim();
+      if (input) {
+        apiKey = input;
+        localStorage.setItem('api_key', apiKey);
+        document.getElementById('api-key-modal').classList.remove('active');
+        updateApiKeyDisplay();
+        loadDashboard();
+      }
+    }
+
+    function showPage(page) {
+      document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+      document.getElementById('page-' + page).style.display = 'block';
+      document.querySelector(`[data-page="${page}"]`).classList.add('active');
+
+      const titles = {
+        search: 'Search Transactions',
+        dashboard: 'Dashboard',
+        upload: 'Upload Data',
+        transactions: 'Transactions'
+      };
+      document.getElementById('page-title').textContent = titles[page];
+
+      if (page === 'dashboard') loadDashboard();
+      if (page === 'transactions') loadTransactions();
+      if (page === 'upload') loadCategories();
+    }
+
+    function setSearch(query) {
+      document.getElementById('search-input').value = query;
+      performSearch();
+    }
+
+    // API Functions
+    async function apiRequest(endpoint, options = {}) {
+      const url = window.location.origin + endpoint;
+      const headers = {
+        'X-API-Key': apiKey,
+        ...options.headers
+      };
+
+      if (options.body && !(options.body instanceof FormData)) {
+        headers['Content-Type'] = 'application/json';
+      }
+
+      const response = await fetch(url, {
+        ...options,
+        headers
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ detail: 'Request failed' }));
+        throw new Error(error.detail || 'Request failed');
+      }
+
+      return response.json();
+    }
+
+    // Search
+    async function performSearch() {
+      const query = document.getElementById('search-input').value.trim();
+      if (!query) return;
+
+      document.getElementById('search-loading').classList.add('active');
+      document.getElementById('search-results').innerHTML = '';
+
+      try {
+        const result = await apiRequest('/api/search', {
+          method: 'POST',
+          body: JSON.stringify({ query, limit: 20 })
+        });
+
+        displaySearchResults(result);
+      } catch (error) {
+        document.getElementById('search-results').innerHTML =
+          `<div class="alert alert-error">Error: ${error.message}</div>`;
+      } finally {
+        document.getElementById('search-loading').classList.remove('active');
+      }
+    }
+
+    function displaySearchResults(result) {
+      const container = document.getElementById('search-results');
+
+      if (!result.results || result.results.length === 0) {
+        container.innerHTML = '<div class="alert alert-error">No transactions found</div>';
+        return;
+      }
+
+      let html = `
+        <div class="results-header">
+          <h3>${result.results.length} results for "${result.query}"</h3>
+        </div>
+      `;
+
+      // Summary card
+      const total = result.results.reduce((sum, r) => sum + (r.amount || 0), 0);
+      html += `
+        <div class="stat-card" style="margin-bottom: 24px;">
+          <div class="stat-label">Total Spending</div>
+          <div class="stat-value">$${total.toFixed(2)}</div>
+        </div>
+      `;
+
+      // Transactions
+      html += '<div class="transaction-list">';
+      result.results.forEach(txn => {
+        html += `
+          <div class="transaction-item">
+            <div class="transaction-info">
+              <div class="transaction-merchant">${txn.merchant || 'Unknown'}</div>
+              <div class="transaction-category">${txn.category || 'Other'}</div>
+              <div class="transaction-date">${txn.month || ''} ${txn.day || ''}, ${txn.year || ''}</div>
+            </div>
+            <div class="transaction-amount">$${(txn.amount || 0).toFixed(2)}</div>
+          </div>
+        `;
+      });
+      html += '</div>';
+
+      container.innerHTML = html;
+    }
+
+    // Dashboard
+    async function loadDashboard() {
+      try {
+        const summary = await apiRequest('/api/summary');
+
+        document.getElementById('total-spending').textContent = '$' + (summary.total_spending || 0).toFixed(2);
+        document.getElementById('total-transactions').textContent = summary.transaction_count || 0;
+        document.getElementById('total-categories').textContent = Object.keys(summary.by_category || {}).length;
+
+        renderCategoryChart(summary.by_category || {});
+        renderMerchantChart(summary.by_merchant || []);
+      } catch (error) {
+        console.error('Dashboard error:', error);
+      }
+    }
+
+    function renderCategoryChart(data) {
+      const ctx = document.getElementById('category-chart').getContext('2d');
+
+      if (categoryChart) categoryChart.destroy();
+
+      const labels = Object.keys(data);
+      const values = Object.values(data);
+
+      categoryChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels,
+          datasets: [{
+            data: values,
+            backgroundColor: [
+              '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e',
+              '#f97316', '#eab308', '#22c55e', '#14b8a6'
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'right' }
+          }
+        }
+      });
+    }
+
+    function renderMerchantChart(data) {
+      const ctx = document.getElementById('merchant-chart').getContext('2d');
+
+      if (merchantChart) merchantChart.destroy();
+
+      const top10 = data.slice(0, 10);
+      const labels = top10.map(d => d.merchant);
+      const values = top10.map(d => d.amount);
+
+      merchantChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Amount',
+            data: values,
+            backgroundColor: '#6366f1'
+          }]
+        },
+        options: {
+          responsive: true,
+          indexAxis: 'y'
+        }
+      });
+    }
+
+    // Upload
+    async function loadCategories() {
+      try {
+        const result = await apiRequest('/api/categories');
+        const select = document.getElementById('filter-category');
+        select.innerHTML = '<option value="">All Categories</option>';
+
+        (result.categories || []).forEach(cat => {
+          select.innerHTML += `<option value="${cat}">${cat}</option>`;
+        });
+      } catch (error) {
+        console.error('Error loading categories:', error);
+      }
+    }
+
+    async function uploadFile(file) {
+      document.getElementById('upload-loading').classList.add('active');
+      document.getElementById('upload-result').innerHTML = '';
+
+      const clearExisting = document.getElementById('clear-existing').checked;
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('clear_existing', clearExisting);
+
+      try {
+        const result = await apiRequest('/api/ingest', {
+          method: 'POST',
+          body: formData
+        });
+
+        const modeText = clearExisting ? 'replaced' : 'added to';
+        document.getElementById('upload-result').innerHTML =
+          `<div class="alert alert-success">Successfully ${modeText} ${result.records_inserted} transactions!</div>`;
+      } catch (error) {
+        document.getElementById('upload-result').innerHTML =
+          `<div class="alert alert-error">Error: ${error.message}</div>`;
+      } finally {
+        document.getElementById('upload-loading').classList.remove('active');
+      }
+    }
+
+    // Transactions
+    async function loadTransactions() {
+      const category = document.getElementById('filter-category').value;
+      const year = document.getElementById('filter-year').value;
+
+      let url = '/api/transactions?limit=100';
+      if (category) url += `&category=${encodeURIComponent(category)}`;
+      if (year) url += `&year=${year}`;
+
+      document.getElementById('transactions-loading').classList.add('active');
+
+      try {
+        const result = await apiRequest(url);
+        displayTransactions(result.results || []);
+      } catch (error) {
+        document.getElementById('transactions-list').innerHTML =
+          `<div class="alert alert-error">Error: ${error.message}</div>`;
+      } finally {
+        document.getElementById('transactions-loading').classList.remove('active');
+      }
+    }
+
+    function displayTransactions(transactions) {
+      const container = document.getElementById('transactions-list');
+
+      if (transactions.length === 0) {
+        container.innerHTML = '<div class="alert alert-error">No transactions found</div>';
+        return;
+      }
+
+      let html = '';
+      transactions.forEach(txn => {
+        html += `
+          <div class="transaction-item">
+            <div class="transaction-info">
+              <div class="transaction-merchant">${txn.merchant || 'Unknown'}</div>
+              <div class="transaction-category">${txn.category || 'Other'}</div>
+              <div class="transaction-date">${txn.month || ''} ${txn.day || ''}, ${txn.year || ''}</div>
+            </div>
+            <div class="transaction-amount">$${(txn.amount || 0).toFixed(2)}</div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+  </script>
+</body>
+</html>
