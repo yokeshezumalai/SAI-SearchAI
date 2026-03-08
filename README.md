@@ -2,7 +2,11 @@
 
 Intelligent transaction search platform powered by Milvus vector database and semantic search.
 
+![SAI Screenshot](SAI.png)
+
 ## Features
+
+![SAI Transaction Search AI](SAI.png)
 
 - **Semantic Search**: Search transactions using natural language queries
 - **Multi-Tenant**: API key-based isolation for multiple users
