@@ -1,4 +1,4 @@
-# SAI - Transaction Search AI
+# SAI - Search AI
 
 Intelligent transaction search platform powered by Milvus vector database and semantic search.
 
